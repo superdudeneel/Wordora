@@ -1,0 +1,461 @@
+<script>
+  (function () {
+    "use strict";
+
+    /* ---------- Helpers ---------- */
+    function storageGet(key) {
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+    function storageSet(key, value) {
+      try { localStorage.setItem(key, value); } catch (e) {}
+    }
+
+    /* ---------- Save button ---------- */
+    function initSave() {
+      var saveForm = document.querySelector(".save-form");
+      if (!saveForm) return;
+
+      var saveBtn = saveForm.querySelector(".save-btn");
+      if (!saveBtn) return;
+      var savePath = saveBtn.querySelector("path");
+      var saving = false;
+
+      function setSaved(on) {
+        saveBtn.classList.toggle("is-saved", on);
+        saveBtn.setAttribute("aria-pressed", on ? "true" : "false");
+        saveBtn.setAttribute("aria-label", on ? "Saved" : "Save");
+        if (savePath) savePath.setAttribute("fill", on ? "currentColor" : "none");
+      }
+
+      saveForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (saving) return;
+        saving = true;
+
+        var wasSaved = saveBtn.getAttribute("aria-pressed") === "true";
+        setSaved(!wasSaved); // optimistic update
+
+        try {
+          var res = await fetch(saveForm.action, {
+            method: "POST",
+            credentials: "same-origin"
+          });
+          // fetch follows redirects, so also catch a bounce to /login
+          if (!res.ok || res.url.indexOf("/login") !== -1) {
+            setSaved(wasSaved); // roll back
+            console.error("Save failed:", res.status);
+          }
+        } catch (err) {
+          setSaved(wasSaved); // roll back
+          console.error(err);
+        } finally {
+          saving = false;
+        }
+      });
+    }
+
+    /* ---------- Response form (+ scroll restore) ---------- */
+    function initResponseForm() {
+      var y = sessionStorage.getItem("scrollY");
+      if (y !== null) {
+        window.scrollTo(0, parseInt(y, 10));
+        sessionStorage.removeItem("scrollY");
+      }
+
+      var resform = document.querySelector(".response-form");
+      if (!resform) return;
+
+      resform.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        try {
+          var res = await fetch(resform.action, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(new FormData(resform)),
+            credentials: "same-origin"
+          });
+          if (res.ok) {
+            sessionStorage.setItem("scrollY", window.scrollY);
+            location.reload();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    }
+
+    /* ---------- Account (profile) menu ---------- */
+    function initAccountMenu() {
+      var wrap = document.querySelector("[data-account]");
+      if (!wrap) return;
+
+      var btn = wrap.querySelector("[data-account-toggle]");
+      var menu = wrap.querySelector("[data-account-menu]");
+      if (!btn || !menu) return;
+
+      function setOpen(open) {
+        menu.hidden = !open;
+        btn.setAttribute("aria-expanded", String(open));
+      }
+
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setOpen(menu.hidden);
+      });
+
+      document.addEventListener("click", function (e) {
+        if (!wrap.contains(e.target)) setOpen(false);
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !menu.hidden) {
+          setOpen(false);
+          btn.focus();
+        }
+      });
+    }
+
+    /* ---------- Theme toggle ---------- */
+    function initTheme() {
+      var root = document.documentElement;
+      var toggle = document.querySelector("[data-theme-toggle]");
+      var media = window.matchMedia("(prefers-color-scheme: dark)");
+
+      function currentTheme() {
+        return root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      }
+
+      function applyTheme(theme) {
+        root.setAttribute("data-theme", theme);
+        if (!toggle) return;
+        var dark = theme === "dark";
+        toggle.setAttribute("aria-pressed", dark ? "true" : "false");
+        toggle.setAttribute(
+          "aria-label",
+          dark ? "Switch to light mode" : "Switch to dark mode"
+        );
+      }
+
+      // Initial theme: saved choice > existing attribute > system preference
+      var saved = storageGet("theme");
+      if (saved === "dark" || saved === "light") {
+        applyTheme(saved);
+      } else if (root.getAttribute("data-theme")) {
+        applyTheme(currentTheme());
+      } else {
+        applyTheme(media.matches ? "dark" : "light");
+      }
+
+      if (toggle) {
+        toggle.addEventListener("click", function () {
+          var next = currentTheme() === "dark" ? "light" : "dark";
+          storageSet("theme", next);
+          applyTheme(next);
+        });
+      }
+
+      // Follow system changes only if the user hasn't chosen manually
+      var onChange = function (event) {
+        if (!storageGet("theme")) applyTheme(event.matches ? "dark" : "light");
+      };
+      if (media.addEventListener) media.addEventListener("change", onChange);
+      else if (media.addListener) media.addListener(onChange);
+    }
+
+    /* ---------- Story filter / search ---------- */
+    function initFilter() {
+      var stories = document.querySelectorAll("[data-story]");
+      var search = document.querySelector("[data-story-search]");
+      var topics = document.querySelectorAll("[data-topic]");
+      var emptyFilter = document.querySelector("[data-filter-empty]");
+      var status = document.querySelector("[data-filter-status]");
+      var clearFilter = document.querySelector("[data-clear-filter]");
+      var activeTopic = "all";
+      var announce = false;
+
+      if (!stories.length) return;
+
+      function applyFilter() {
+        var query = search && search.value ? search.value.trim().toLowerCase() : "";
+        var shown = 0;
+
+        stories.forEach(function (story) {
+          var category = story.getAttribute("data-category") || "";
+          var text = (story.getAttribute("data-search") || "").toLowerCase();
+          var matchesTopic = activeTopic === "all" || category === activeTopic;
+          var matchesQuery = !query || text.indexOf(query) !== -1;
+          var visible = matchesTopic && matchesQuery;
+          story.hidden = !visible;
+          if (visible) shown += 1;
+        });
+
+        if (emptyFilter) emptyFilter.hidden = shown !== 0;
+        if (status && announce) {
+          status.textContent = shown + (shown === 1 ? " story" : " stories");
+        }
+      }
+
+      topics.forEach(function (button) {
+        button.addEventListener("click", function () {
+          activeTopic = button.getAttribute("data-topic") || "all";
+          topics.forEach(function (item) {
+            item.setAttribute("aria-pressed", item === button ? "true" : "false");
+          });
+          announce = true;
+          applyFilter();
+        });
+      });
+
+      if (search) {
+        search.addEventListener("input", function () {
+          announce = true;
+          applyFilter();
+        });
+        search.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && search.value) {
+            search.value = "";
+            announce = true;
+            applyFilter();
+          }
+        });
+      }
+
+      if (clearFilter) {
+        clearFilter.addEventListener("click", function () {
+          activeTopic = "all";
+          if (search) search.value = "";
+          topics.forEach(function (item) {
+            item.setAttribute(
+              "aria-pressed",
+              item.getAttribute("data-topic") === "all" ? "true" : "false"
+            );
+          });
+          announce = true;
+          applyFilter();
+          if (search) search.focus();
+        });
+      }
+    }
+
+    /* ---------- Show / hide password ---------- */
+    function initReveal() {
+      document.querySelectorAll("[data-reveal]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var input = document.getElementById(button.getAttribute("data-reveal"));
+          if (!input) return;
+          var showing = input.type === "text";
+          input.type = showing ? "password" : "text";
+          button.textContent = showing ? "Show" : "Hide";
+          button.setAttribute("aria-pressed", showing ? "false" : "true");
+          input.focus();
+        });
+      });
+    }
+
+    /* ---------- Post editor: word count + cover preview ---------- */
+    function initEditor() {
+      var body = document.getElementById("postContent");
+      var count = document.querySelector("[data-word-count]");
+      var file = document.getElementById("featuredImage");
+      var preview = document.querySelector("[data-cover-preview]");
+      var clearCover = document.querySelector("[data-clear-cover]");
+
+      function updateCount() {
+        if (!body || !count) return;
+        var text = body.value.trim();
+        var words = text ? text.split(/\s+/).length : 0;
+        count.textContent = words === 1 ? "1 word" : words + " words";
+      }
+
+      if (body) {
+        body.addEventListener("input", updateCount);
+        updateCount();
+      }
+
+      if (file && preview) {
+        file.addEventListener("change", function () {
+          var chosen = file.files && file.files[0];
+          var image = preview.querySelector("img");
+          if (!chosen || !image) {
+            preview.hidden = true;
+            return;
+          }
+          var reader = new FileReader();
+          reader.onload = function () {
+            image.src = reader.result;
+            preview.hidden = false;
+          };
+          reader.readAsDataURL(chosen);
+        });
+      }
+
+      if (clearCover && file && preview) {
+        clearCover.addEventListener("click", function () {
+          file.value = "";
+          var image = preview.querySelector("img");
+          if (image) image.removeAttribute("src");
+          preview.hidden = true;
+          file.focus();
+        });
+      }
+    }
+
+    /* ---------- Copy link ---------- */
+    function initCopyLink() {
+      var copyLink = document.querySelector("[data-copy-link]");
+      if (!copyLink) return;
+
+      copyLink.addEventListener("click", function () {
+        if (!(navigator.clipboard && navigator.clipboard.writeText)) return;
+        navigator.clipboard.writeText(window.location.href).then(function () {
+          copyLink.textContent = "Copied";
+          window.setTimeout(function () {
+            copyLink.textContent = "Copy link";
+          }, 1600);
+        }).catch(function () {});
+      });
+    }
+
+    function initProfileFollow() {
+      var root = document.querySelector("[data-follow]");
+      if (!root) return;
+
+      var followBtn = root.querySelector("[data-follow-btn]");
+      var unfollowBtn = root.querySelector("[data-unfollow-btn]");
+      var note = root.querySelector("[data-follow-note]");
+      if (!followBtn || !unfollowBtn) return;
+
+      var pending = false;
+
+      function setFollowing(on) {
+        followBtn.textContent = on ? "Following" : "Follow";
+        followBtn.classList.toggle("green-btn", !on);
+        followBtn.classList.toggle("follow-btn", on);
+        followBtn.classList.toggle("is-following", on);
+        followBtn.setAttribute("aria-pressed", on ? "true" : "false");
+        followBtn.disabled = on;
+        unfollowBtn.hidden = !on;
+      }
+
+      function showNote(message) {
+        if (!note) return;
+        note.textContent = message;
+        note.hidden = !message;
+      }
+
+      async function post(url) {
+        var res = await fetch(url, {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          credentials: "same-origin"
+        });
+        if (res.url.indexOf("/login") !== -1) {
+          window.location.href = "/login";
+          return null;
+        }
+        var data = null;
+        try { data = await res.json(); } catch (e) { data = null; }
+        if (!res.ok) {
+          var err = new Error("request failed");
+          err.data = data;
+          throw err;
+        }
+        return data;
+      }
+
+      followBtn.addEventListener("click", async function () {
+        if (pending || followBtn.disabled) return;
+        pending = true;
+        followBtn.disabled = true;
+        showNote("");
+        try {
+          var data = await post(root.getAttribute("data-follow-url"));
+          if (data && data.following === true) setFollowing(true);
+          else followBtn.disabled = false;
+        } catch (err) {
+          followBtn.disabled = false;
+          showNote((err.data && err.data.msg) || "Couldn’t follow this writer. Try again.");
+        } finally {
+          pending = false;
+        }
+      });
+
+      unfollowBtn.addEventListener("click", async function () {
+        if (pending) return;
+        pending = true;
+        unfollowBtn.disabled = true;
+        showNote("");
+        try {
+          var data = await post(root.getAttribute("data-unfollow-url"));
+          if (data && data.following === false) setFollowing(false);
+        } catch (err) {
+          showNote((err.data && err.data.msg) || "Couldn’t unfollow this writer. Try again.");
+        } finally {
+          unfollowBtn.disabled = false;
+          pending = false;
+        }
+      });
+    }
+
+    function initToggleCollection() {
+      var dialog = document.getElementById("collection-dialog");
+      if (!dialog) return;
+      document.querySelectorAll("[data-open-collection]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          dialog.showModal();
+          var name = dialog.querySelector("[name=name]");
+          if (name) name.focus();
+        });
+      });
+      var close = dialog.querySelector("[data-close-collection]");
+      if (close) close.addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog) dialog.close();
+      });
+    }
+
+    function initCreateCollection() {
+      var y = sessionStorage.getItem("scrollY");
+      if (y !== null) {
+        window.scrollTo(0, parseInt(y, 10));
+        sessionStorage.removeItem("scrollY");
+      }
+      var collectionForm = document.querySelector(".collection-form");
+      if (!collectionForm) return;
+
+      collectionForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        try {
+          var res = await fetch(collectionForm.action, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(new FormData(resform)),
+            credentials: "same-origin"
+          });
+          if (res.ok) {
+            sessionStorage.setItem("scrollY", window.scrollY);
+            location.reload();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    }
+
+    /* ---------- Init everything independently ---------- */
+    [
+      initTheme,
+      initAccountMenu,
+      initSave,
+      initResponseForm,
+      initFilter,
+      initReveal,
+      initEditor,
+      initCopyLink,
+      initProfileFollow,
+      initToggleCollection,
+    ].forEach(function (fn) {
+      try { fn(); } catch (err) { console.error(fn.name + " failed:", err); }
+    });
+  })();
+</script>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include("./partials/head") %>
+  <title><%= locals.profileUser && profileUser.username ? profileUser.username : "Profile" %> · Blogify</title>
+</head>
+<body>
+  <%- include("./partials/navbar") %>
+
+  <main id="main" class="sheet">
+    <p class="back-row"><a href="/">Stories</a></p>
+
+    <% if (!locals.profileUser) { %>
+    <h1 class="article-title">Profile not found</h1>
+    <p class="lede">That person isn’t on Blogify.</p>
+    <% } else { %>
+    <%
+      var person = profileUser;
+      var name = person.username || "Reader";
+      var isOwn = locals.user && String(user._id) === String(person._id);
+      var isFollowing = !!locals.following;
+      var stories = (locals.blogs || []).slice().sort(function (a, b) {
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      });
+      var topicNames = { tech: "Technology", lifestyle: "Lifestyle", travel: "Travel", finance: "Finance" };
+      var photo = person.profileImageUrl && person.profileImageUrl !== "/images/default.png";
+    %>
+
+    <header class="profile-head">
+      <span class="avatar profile-avatar" aria-hidden="true">
+        <% if (photo) { %>
+        <img src="<%= person.profileImageUrl %>" alt="">
+        <% } else { %>
+        <%= name.charAt(0).toUpperCase() %>
+        <% } %>
+      </span>
+      <div class="profile-identity">
+        <h1 class="profile-name"><%= name %></h1>
+        <p class="profile-meta">
+          <% if (isOwn && person.email) { %><span><%= person.email %></span><% } %>
+          <span><%= stories.length %> <%= stories.length === 1 ? "story" : "stories" %></span>
+        </p>
+        <% if (locals.user && !isOwn) { %>
+        <div class="profile-actions" data-follow data-follow-url="/profile/follow/<%= person._id %>" data-unfollow-url="/profile/unfollow/<%= person._id %>">
+          <button
+            type="button"
+            class="<%= isFollowing ? "follow-btn is-following" : "green-btn" %>"
+            data-follow-btn
+            aria-pressed="<%= isFollowing ? "true" : "false" %>"
+            <% if (isFollowing) { %>disabled<% } %>
+          ><%= isFollowing ? "Following" : "Follow" %></button>
+          <button type="button" class="unfollow-btn" data-unfollow-btn<% if (!isFollowing) { %> hidden<% } %>>Unfollow</button>
+          <p class="profile-follow-note" data-follow-note role="alert" hidden></p>
+        </div>
+        <% } %>
+      </div>
+    </header>
+
+    <% if (stories.length) { %>
+    <div class="feed">
+      <% stories.forEach(function (blog) {
+        var text = blog.body || "";
+        var plain = text.replace(/\s+/g, " ").trim();
+        var wordCount = plain ? plain.split(" ").length : 0;
+        var minutes = Math.max(1, Math.round(wordCount / 220));
+        var topicLabel = topicNames[blog.category] || blog.category || "";
+        var stamp = blog.createdAt
+          ? new Date(blog.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+          : "";
+      %>
+      <a class="story" href="/blog/<%= blog._id %>">
+        <div class="story-copy">
+          <h2 class="story-title"><%= blog.title %></h2>
+          <% if (plain) { %>
+          <p class="story-excerpt"><%= plain %></p>
+          <% } %>
+          <p class="story-meta">
+            <% if (stamp) { %><span><%= stamp %></span><% } %>
+            <span><%= minutes %> min read</span>
+            <% if (topicLabel) { %><span><%= topicLabel %></span><% } %>
+          </p>
+        </div>
+        <% if (blog.coverImageUrl) { %>
+        <div class="story-thumb">
+          <img src="<%= blog.coverImageUrl %>" alt="" loading="lazy">
+        </div>
+        <% } %>
+      </a>
+      <% }) %>
+    </div>
+    <% } else if (isOwn) { %>
+    <p class="lede">You haven’t published a story yet.</p>
+    <a class="green-btn" href="/blog/add-new">Write a story</a>
+    <% } else { %>
+    <p class="lede">No stories yet.</p>
+    <% } %>
+    <% } %>
+  </main>
+
+  <%- include("./partials/script") %>
+</body>
+</html>

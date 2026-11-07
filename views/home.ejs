@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include("./partials/head") %>
+  <title>Wordora</title>
+</head>
+<body class="has-dock">
+  <%- include("./partials/navbar") %>
+
+  <div class="home-frame">
+  <main id="main" class="sheet">
+    <div class="feed-head">
+      <h1>Latest Stories</h1>
+      <p class="lede">Writing from people on Wordora.</p>
+    </div>
+
+    <% if (locals.allBlogs && allBlogs.length) { %>
+    <div class="topics" role="toolbar" aria-label="Topics">
+      <button type="button" data-topic="all" aria-pressed="true">All</button>
+      <button type="button" data-topic="tech" aria-pressed="false">Technology</button>
+      <button type="button" data-topic="lifestyle" aria-pressed="false">Lifestyle</button>
+      <button type="button" data-topic="travel" aria-pressed="false">Travel</button>
+      <button type="button" data-topic="finance" aria-pressed="false">Finance</button>
+    </div>
+
+    <label class="search">
+      <span class="visually-hidden">Search stories</span>
+      <input type="search" data-story-search placeholder="Search stories" autocomplete="off">
+    </label>
+    <p class="visually-hidden" aria-live="polite" data-filter-status></p>
+
+    <div class="feed">
+      <%
+        var topicNames = { tech: "Technology", lifestyle: "Lifestyle", travel: "Travel", finance: "Finance" };
+        allBlogs.forEach(function(blog) {
+          var text = blog.body || "";
+          var plain = text.replace(/\s+/g, " ").trim();
+          var wordCount = plain ? plain.split(" ").length : 0;
+          var minutes = Math.max(1, Math.round(wordCount / 220));
+          var author = blog.createdBy && blog.createdBy.username ? blog.createdBy.username : "Anonymous";
+          var topicLabel = topicNames[blog.category] || blog.category || "";
+          var stamp = blog.createdAt
+            ? new Date(blog.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+            : "";
+          var searchBlob = [blog.title, plain, author, topicLabel].join(" ");
+      %>
+      <a class="story" href="/blog/<%= blog._id %>" data-story data-category="<%= blog.category || "" %>" data-search="<%= searchBlob %>">
+        <div class="story-copy">
+          <h2 class="story-title"><%= blog.title %></h2>
+          <% if (plain) { %>
+          <p class="story-excerpt"><%= plain %></p>
+          <% } %>
+          <p class="story-meta">
+            <span class="story-author"><%= author %></span>
+            <% if (stamp) { %><span><%= stamp %></span><% } %>
+            <span><%= minutes %> min read</span>
+            <% if (topicLabel) { %><span><%= topicLabel %></span><% } %>
+          </p>
+        </div>
+        <% if (blog.coverImageUrl) { %>
+        <div class="story-thumb">
+          <img src="<%= blog.coverImageUrl %>" alt="" loading="lazy">
+        </div>
+        <% } %>
+      </a>
+      <% }) %>
+    </div>
+
+    <div class="filter-empty" data-filter-empty hidden>
+      <p>No stories match.</p>
+      <button type="button" class="text-btn" data-clear-filter>Show all stories</button>
+    </div>
+    <% } else { %>
+    <div class="empty">
+      <p class="lede">Nothing published yet. The first story will show up here.</p>
+      <a class="green-btn" href="/blog/add-new">Write a story</a>
+    </div>
+    <% } %>
+  </main>
+  <%- include("./partials/aside") %>
+  </div>
+
+  <%- include("./partials/script") %>
+</body>
+</html>

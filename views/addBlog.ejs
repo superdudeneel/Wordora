@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include("./partials/head") %>
+  <title>Write · Blogify</title>
+</head>
+<body>
+  <%- include("./partials/navbar") %>
+
+  <main id="main" class="editor">
+    <form action="/blog/add-new" method="POST" enctype="multipart/form-data">
+      <div class="editor-tools">
+        <div>
+          <label class="tool-label" for="postCategory">Topic</label>
+          <select class="topic-select" id="postCategory" name="category" required>
+            <option value="" selected disabled>Choose a topic</option>
+            <option value="tech">Technology</option>
+            <option value="lifestyle">Lifestyle</option>
+            <option value="travel">Travel</option>
+            <option value="finance">Finance</option>
+          </select>
+        </div>
+        <label class="file-btn">
+          Add a cover
+          <input type="file" id="featuredImage" name="imageUrl" accept="image/*">
+        </label>
+        <p class="hint">Optional. A wide photo works best.</p>
+      </div>
+
+      <div class="cover-preview" data-cover-preview hidden>
+        <img alt="Cover preview">
+        <button type="button" class="text-btn" data-clear-cover>Remove cover</button>
+      </div>
+
+      <label class="visually-hidden" for="postTitle">Title</label>
+      <input class="title-input" type="text" id="postTitle" name="title" placeholder="Title" required>
+
+      <label class="visually-hidden" for="postContent">Story</label>
+      <textarea class="story-input" id="postContent" name="body" placeholder="Tell your story…" required></textarea>
+
+      <div class="publish-row">
+        <p class="word-count" data-word-count>0 words</p>
+        <button type="submit" class="green-btn">Publish</button>
+      </div>
+    </form>
+  </main>
+
+  <%- include("./partials/script") %>
+</body>
+</html>

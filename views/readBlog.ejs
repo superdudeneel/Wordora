@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include("./partials/head") %>
+  <title><%= blog.title %> · Blogify</title>
+  <style>
+    .byline-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: none;
+    }
+
+    .reader-story .copy-link {
+      margin-left: 0;
+    }
+
+    .save-form {
+      margin: 0;
+    }
+
+    .save-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.25rem 0;
+      cursor: pointer;
+    }
+
+    .save-btn svg {
+      display: block;
+    }
+
+    .save-btn.is-saved {
+      color: #2563eb;
+    }
+
+    .save-btn.is-saved svg path {
+      fill: currentColor;
+    }
+
+    [data-theme="dark"] .save-btn.is-saved {
+      color: #7cacf8;
+    }
+  </style>
+  <% if (!locals.user) { %>
+  <style>
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .reader-gate .reader-story {
+      filter: blur(7px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .gate {
+      position: fixed;
+      z-index: 2;
+      left: calc(50% + (var(--rail) / 2));
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(34rem, calc(100% - 2.5rem));
+      padding: 2.5rem 2.25rem 2rem;
+      background: var(--paper);
+      border: 1px solid var(--line-strong);
+      border-radius: 20px;
+    }
+
+    .gate-title {
+      font-family: var(--serif);
+      font-size: 2.35rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin: 0 0 0.55rem;
+    }
+
+    .gate .lede {
+      margin-bottom: 1.35rem;
+      font-size: 1.125rem;
+    }
+
+    .gate .switch {
+      margin-top: 1rem;
+    }
+  </style>
+  <% } %>
+</head>
+<body>
+  <%- include("./partials/navbar") %>
+
+  <main id="main" class="sheet reader">
+    <p class="back-row"><a href="/">Stories</a></p>
+
+    <div class="reader-gate">
+    <div class="reader-story"<% if (!locals.user) { %> inert<% } %>>
+    <% if (blog.coverImageUrl) { %>
+    <figure class="article-cover">
+      <img src="<%= blog.coverImageUrl %>" alt="">
+    </figure>
+    <% } %>
+
+    <h1 class="article-title"><%= blog.title %></h1>
+
+    <%
+      var topicNames = { tech: "Technology", lifestyle: "Lifestyle", travel: "Travel", finance: "Finance" };
+      var text = blog.body || "";
+      var plain = text.replace(/\s+/g, " ").trim();
+      var wordCount = plain ? plain.split(" ").length : 0;
+      var minutes = Math.max(1, Math.round(wordCount / 220));
+      var author = blog.createdBy && blog.createdBy.username ? blog.createdBy.username : "Anonymous";
+      var id = blog.createdBy._id;
+      var topicLabel = topicNames[blog.category] || blog.category || "";
+      var stamp = blog.createdAt
+        ? new Date(blog.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+        : "";
+      var chunks = text.split(/\n\s*\n/).map(function (part) { return part.trim(); }).filter(Boolean);
+      if (chunks.length <= 1 && text.indexOf("\n") !== -1) {
+        chunks = text.split(/\n/).map(function (part) { return part.trim(); }).filter(Boolean);
+      }
+    %>
+
+    <div class="byline">
+      <span class="avatar" aria-hidden="true"><%= author.charAt(0).toUpperCase() %></span>
+      <div class="byline-copy">
+        <a href = "/profile/<%= id %>" class="story-author"><%= author %></a>
+        <p class="story-meta">
+          <% if (stamp) { %><span><%= stamp %></span><% } %>
+          <span><%= minutes %> min read</span>
+          <% if (topicLabel) { %><span><%= topicLabel %></span><% } %>
+        </p>
+      </div>
+      <div class="byline-actions">
+        <button type="button" class="text-btn copy-link" data-copy-link>Copy link</button>
+      </div>
+    </div>
+
+    <div class="article-body">
+      <% if (chunks.length) { %>
+        <% chunks.forEach(function (paragraph) { %>
+        <p><%= paragraph %></p>
+        <% }) %>
+      <% } else { %>
+        <p class="lede">This story has no text yet.</p>
+      <% } %>
+    </div>
+
+    <%
+      var comments = Array.isArray(locals.comments) ? locals.comments : [];
+      var likes = Array.isArray(locals.likes) ? locals.likes : [];
+      var likeCount = likes.length;
+      var isLiked = locals.liked === "true" ? true : false;
+      var isSaved = locals.saved === "true" ? true : false;
+      var readerName = locals.user && user.username ? user.username : "";
+    %>
+    <div class="story-actions">
+      <div class="story-actions-main">
+        <form class="like-form" action="/blog/like/<%= blog._id %>" method="POST" data-like-form>
+          <button type="submit" class="action-icon" data-like
+                  aria-pressed="<%= isLiked ? 'true' : 'false' %>">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path d="M12 19.2S5.8 15.3 5.8 11.1A3.4 3.4 0 0 1 12 8.2a3.4 3.4 0 0 1 6.2 2.9c0 4.2-6.2 8.1-6.2 8.1z"
+                    fill="<%= isLiked ? 'currentColor' : 'none' %>"
+                    stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
+            </svg>
+            <span data-like-count><%= likeCount %></span>
+          </button>
+        </form>
+        <a class="action-icon" href="#responses">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M6 6.5h12A1.5 1.5 0 0 1 19.5 8v7a1.5 1.5 0 0 1-1.5 1.5H10l-4 3v-3H6A1.5 1.5 0 0 1 4.5 15V8A1.5 1.5 0 0 1 6 6.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
+          </svg>
+          <span><%= comments.length %></span>
+          <span class="visually-hidden"><%= comments.length === 1 ? "response" : "responses" %></span>
+        </a>
+      </div>
+      <form class="save-form" action="/blog/save/<%= blog._id %>" method="POST">
+        <button type="submit" class="save-btn action-icon<%= locals.saved === "true" ? " is-saved" : "" %>" aria-pressed="<%= locals.saved === "true" ? "true" : "false" %>" aria-label="<%= locals.saved === "true" ? "Saved" : "Save" %>">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M6.5 3.5h11a1 1 0 0 1 1 1V21l-6.5-3.8L5.5 21V4.5a1 1 0 0 1 1-1z"
+      fill="<%= locals.saved === 'true' ? 'currentColor' : 'none' %>"
+      stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linejoin="round">
+</path>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <section class="responses" id="responses" aria-labelledby="responses-heading">
+      <h2 id="responses-heading">Responses (<%= comments.length %>)</h2>
+
+      <% if (locals.user) { %>
+      <form class="response-form" action="/blog/comment/<%= blog._id %>" method="POST">
+        <span class="avatar" aria-hidden="true"><%= readerName.charAt(0).toUpperCase() %></span>
+        <div class="response-compose">
+          <p class="response-name"><%= readerName %></p>
+          <label class="visually-hidden" for="comment">What are your thoughts?</label>
+          <textarea id="comment" name="comment" rows="3" placeholder="What are your thoughts?" required></textarea>
+          <div class="response-submit">
+            <button type="submit" class="green-btn">Respond</button>
+          </div>
+        </div>
+      </form>
+      <% } %>
+
+      <% if (!comments.length) { %>
+      <p class="aside-empty">No responses yet.</p>
+      <% } else { %>
+      <ol class="response-list" role="list">
+        <% comments.forEach(function (comment) {
+          var person = comment.createdBy || {};
+          var name = person.username || "Anonymous";
+          var photo = person.profileImageUrl && person.profileImageUrl !== "/images/default.png";
+          var when = comment.createdAt
+            ? new Date(comment.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+            : "";
+        %>
+        <li class="response">
+          <% if (person._id) { %><a class="avatar" href="/profile/<%= person._id %>" aria-hidden="true"><% } else { %><span class="avatar" aria-hidden="true"><% } %>
+            <% if (photo) { %>
+            <img src="<%= person.profileImageUrl %>" alt="">
+            <% } else { %>
+            <%= name.charAt(0).toUpperCase() %>
+            <% } %>
+          <% if (person._id) { %></a><% } else { %></span><% } %>
+          <div class="response-copy">
+            <% if (person._id) { %>
+            <a class="response-name" href="/profile/<%= person._id %>"><%= name %></a>
+            <% } else { %>
+            <p class="response-name"><%= name %></p>
+            <% } %>
+            <% if (when) { %><span class="response-time"><%= when %></span><% } %>
+            <p class="response-body"><%= comment.content || "" %></p>
+          </div>
+        </li>
+        <% }) %>
+      </ol>
+      <% } %>
+    </section>
+    </div>
+    <% if (!locals.user) { %>
+    <div class="gate">
+      <h2 class="gate-title" id="gate-title">Sign in to read</h2>
+      <p class="lede">This story is available once you have an account.</p>
+      <a class="green-btn block" href="/login">Sign in</a>
+      <p class="switch">New here? <a href="/signup">Sign up</a></p>
+    </div>
+    <% } %>
+    </div>
+  </main>
+
+  <%- include("./partials/script") %>
+  <script>
+    (function () {
+      var like = document.querySelector("[data-like]");
+      if (!like) return;
+      like.addEventListener("click", function () {
+        var on = like.getAttribute("aria-pressed") === "true";
+        like.setAttribute("aria-pressed", on ? "false" : "true");
+        var count = like.querySelector("[data-like-count]");
+        if (!count) return;
+        var value = parseInt(count.textContent, 10);
+        if (isNaN(value)) return;
+        count.textContent = String(on ? Math.max(0, value - 1) : value + 1);
+      });
+    })();
+  </script>
+</body>
+</html>

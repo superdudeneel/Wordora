@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include("./partials/head") %>
+  <title>Your stories · Blogify</title>
+</head>
+<body>
+  <%- include("./partials/navbar") %>
+
+  <main id="main" class="sheet">
+    <h1>Your stories</h1>
+    <p class="lede">Stories you publish are listed on the home page, newest first.</p>
+    <div class="empty-actions">
+      <a class="green-btn" href="/blog/add-new">Write a story</a>
+      <a class="text-btn" href="/">Read stories</a>
+    </div>
+  </main>
+
+  <%- include("./partials/script") %>
+</body>
+</html>

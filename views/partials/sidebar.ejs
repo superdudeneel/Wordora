@@ -1,0 +1,64 @@
+<%
+  var path = locals.currentPath || "";
+  var ownId = locals.user && locals.user._id ? String(locals.user._id) : "";
+  var onHome = path === "/";
+  var onLibrary = path === "/library/myposts" || path === "/library/saved" || path === "/library/collections";
+  var onProfile = path === "/myprofile" || (ownId && path === "/profile/" + ownId);
+  var onCreate = path === "/blog/add-new";
+  var onStories = path === "/me/stories";
+  var onFollowing = path === "/me/following";
+  var onSuggestions = path === "/me/following/suggestions";
+%>
+<nav class="rail" aria-label="Main">
+  <a class="rail-link<%= onHome ? " is-current" : "" %>" href="/"<% if (onHome) { %> aria-current="page"<% } %>>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" d="M4 10.8 12 4l8 6.8V20a1 1 0 0 1-1 1h-5.2v-6.2H10.2V21H5a1 1 0 0 1-1-1z"></path>
+    </svg>
+    <span class="rail-label">Home</span>
+  </a>
+  <a class="rail-link<%= onLibrary ? " is-current" : "" %>" href="/library/myposts"<% if (onLibrary) { %> aria-current="page"<% } %>>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-3.4L6 20V5.5a1 1 0 0 1 1-1z"></path>
+    </svg>
+    <span class="rail-label">Library</span>
+  </a>
+  <a class="rail-link<%= onProfile ? " is-current" : "" %>" href="/myprofile"<% if (onProfile) { %> aria-current="page"<% } %>>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7"></circle>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M5.5 19.2c1.2-2.6 3.4-3.9 6.5-3.9s5.3 1.3 6.5 3.9"></path>
+    </svg>
+    <span class="rail-label">Profile</span>
+  </a>
+  <a class="rail-link<%= onStories ? " is-current" : "" %>" href="/me/stories"<% if (onStories) { %> aria-current="page"<% } %>>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M7 3.5h7l4.5 4.5v11a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5z"></path>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M14 3.5V8h4.5"></path>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M8.8 12.5h6.4M8.8 16h6.4"></path>
+    </svg>
+    <span class="rail-label">Stories</span>
+  </a>
+  <a class="rail-link<%= onFollowing ? " is-current" : "" %>" href="/me/following"<% if (onFollowing) { %> aria-current="page"<% } %>>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <!-- front person -->
+      <circle cx="9.5" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7"></circle>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M3.5 20.5V19a4.5 4.5 0 0 1 4.5-4.5h3a4.5 4.5 0 0 1 4.5 4.5v1.5"></path>
+      <!-- person behind -->
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M13.5 5a3.2 3.2 0 0 1 0 6"></path>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M17.2 14.4a4.2 4.2 0 0 1 3.3 4.1v2"></path>
+    </svg>
+    <span class="rail-label">Following</span>
+  </a>
+  <a class="rail-link<%= onSuggestions ? " is-current" : "" %>" href="/me/following/suggestions"<% if (onSuggestions) { %> aria-current="page"<% } %>>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 5v14M5 12h14"></path>
+    </svg>
+    <span class="rail-label">Find writers and publications to follow.</span>
+  </a>
+  <a class="rail-create<%= onCreate ? " is-current" : "" %>" href="/blog/add-new"<% if (onCreate) { %> aria-current="page"<% } %>>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.7"></circle>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 8.5v7M8.5 12h7"></path>
+    </svg>
+    <span class="rail-label">Create blog</span>
+  </a>
+</nav>

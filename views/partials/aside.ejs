@@ -1,0 +1,82 @@
+<%
+  var hasTrends = Array.isArray(locals.trending);
+  var hasSuggestions = Array.isArray(locals.suggestions);
+  var trendItems = hasTrends ? trending : [
+    { title: "Notes from a long train north", author: "Leela", likes: 86 },
+    { title: "The kitchen that taught me to wait", author: "Arun", likes: 64 },
+    { title: "What I keep in a travel notebook", author: "Sana", likes: 41 },
+    { title: "A small case for paper maps", author: "Dev", likes: 29 },
+    { title: "Evenings after the lab closes", author: "Meera", likes: 18 }
+  ];
+  var suggestItems = hasSuggestions ? suggestions : [
+    { username: "leela" },
+    { username: "arun" },
+    { username: "sana" }
+  ];
+%>
+<aside class="aside" aria-label="Discover">
+  <section class="aside-block" aria-labelledby="trending-heading">
+    <h2 id="trending-heading" class="aside-title">Trending</h2>
+    <% if (!trendItems.length) { %>
+    <p class="aside-empty">Stories with the most likes will show up here.</p>
+    <% } else { %>
+    <ol class="trend-list" role="list">
+      <% trendItems.forEach(function (story) {
+        var title = story.title || "Untitled";
+        var author = story.author || (story.createdBy && story.createdBy.username) || "Anonymous";
+        var likes = typeof story.likes === "number" ? story.likes : (typeof story.likeCount === "number" ? story.likeCount : null);
+        var href = story.href || (story._id ? ("/blog/" + story._id) : "");
+      %>
+      <li>
+        <% if (href) { %><a class="trend" href="<%= href %>"><% } else { %><div class="trend"><% } %>
+          <span class="trend-copy">
+            <span class="trend-title"><%= title %></span>
+            <span class="trend-meta">
+              <span class="trend-author"><%= author %></span>
+              <% if (likes !== null) { %>
+              <span><%= likes %> <%= likes === 1 ? "like" : "likes" %></span>
+              <% } %>
+            </span>
+          </span>
+        <% if (href) { %></a><% } else { %></div><% } %>
+      </li>
+      <% }) %>
+    </ol>
+    <% } %>
+  </section>
+
+  <section class="aside-block" aria-labelledby="follow-heading">
+    <h2 id="follow-heading" class="aside-title">Writers to follow</h2>
+    <% if (!suggestItems.length) { %>
+    <p class="aside-empty">Writers you might like will show up here.</p>
+    <% } else { %>
+    <ul class="suggest-list" role="list">
+      <% suggestItems.forEach(function (person) {
+        var name = person.username || person.name || "Writer";
+        var href = person.href || (person._id ? ("/profile/" + person._id) : "");
+        var photo = person.profileImageUrl && person.profileImageUrl !== "/images/default.png";
+        var initial = name.charAt(0).toUpperCase();
+      %>
+      <li class="suggest">
+        <% if (href) { %><a class="suggest-person" href="<%= href %>"><% } else { %><div class="suggest-person"><% } %>
+          <span class="avatar aside-avatar" aria-hidden="true">
+            <% if (photo) { %>
+            <img src="<%= person.profileImageUrl %>" alt="">
+            <% } else { %>
+            <%= initial %>
+            <% } %>
+          </span>
+          <span class="suggest-copy">
+            <span class="suggest-name"><%= name %></span>
+            <% if (person.bio) { %>
+            <span class="suggest-bio"><%= person.bio %></span>
+            <% } %>
+          </span>
+        <% if (href) { %></a><% } else { %></div><% } %>
+        <span class="follow-btn"<% if (person._id) { %> data-user-id="<%= person._id %>"<% } %>>Follow</span>
+      </li>
+      <% }) %>
+    </ul>
+    <% } %>
+  </section>
+</aside>

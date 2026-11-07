@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+jspm_packages/
+
+# Secrets - keep out of AI context
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Lock files (large, no useful context)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+logs/
+*.log
+
+# User uploads and media
+public/uploads/
+public/images/uploads/
+uploads/
+*.mp4
+*.mov
+*.zip
+
+# Build output / caches
+dist/
+build/
+coverage/
+.cache/
+.nyc_output/
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# OS / temp
+.DS_Store
+Thumbs.db
+tmp/
+temp/

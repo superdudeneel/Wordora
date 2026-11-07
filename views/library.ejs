@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include("./partials/head") %>
+  <title>Library · Blogify</title>
+</head>
+<body>
+  <%- include("./partials/navbar") %>
+
+  <main id="main" class="sheet">
+    <%
+      var libraryPath = locals.currentPath || "";
+      var onPosts = libraryPath === "/library/myposts";
+      var onSaved = libraryPath === "/library/saved";
+      var onCollections = libraryPath === "/library/collections";
+    %>
+    <div class="feed-head">
+      <h1>Your Library</h1>
+      <nav class="library-tabs" aria-label="Library">
+        <a href="/library/myposts"<% if (onPosts) { %> aria-current="page"<% } %>>My posts</a>
+        <a href="/library/saved"<% if (onSaved) { %> aria-current="page"<% } %>>Saved</a>
+        <a href="/library/collections"<% if (onCollections) { %> aria-current="page"<% } %>>Collections</a>
+      </nav>
+      <p class="lede"><%= onPosts ? "Stories you published." : (onCollections ? "Saved stories, grouped." : "Stories you saved.") %></p>
+    </div>
+
+    <% if (onCollections) { %>
+    <% var collections = Array.isArray(locals.collections) ? locals.collections : []; %>
+    <% if (collections.length) { %>
+    <p class="collection-add-row">
+      <button type="button" class="collection-add" data-open-collection>Create collection</button>
+    </p>
+    <div class="collections">
+      <% collections.forEach(function (collection) {
+        var posts = Array.isArray(collection.savedBlogs) ? collection.savedBlogs.filter(Boolean) : [];
+        var stories = posts.filter(function (blog) { return blog && blog.title; });
+        var storyCount = posts.length;
+      %>
+      <section class="collection">
+        <header class="collection-head">
+          <h2 class="collection-name"><%= collection.name || "Untitled collection" %></h2>
+          <% if (collection.description) { %>
+          <p class="story-excerpt"><%= collection.description %></p>
+          <% } %>
+          <p class="story-meta"><span><%= storyCount %> <%= storyCount === 1 ? "story" : "stories" %></span></p>
+        </header>
+        <% if (stories.length) { %>
+        <div class="feed">
+          <%
+            var topicNames = { tech: "Technology", lifestyle: "Lifestyle", travel: "Travel", finance: "Finance" };
+            stories.forEach(function (blog) {
+              var text = blog.body || "";
+              var plain = text.replace(/\s+/g, " ").trim();
+              var wordCount = plain ? plain.split(" ").length : 0;
+              var minutes = Math.max(1, Math.round(wordCount / 220));
+              var author = blog.createdBy && blog.createdBy.username ? blog.createdBy.username : "Anonymous";
+              var topicLabel = topicNames[blog.category] || blog.category || "";
+              var stamp = blog.createdAt
+                ? new Date(blog.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                : "";
+          %>
+          <a class="story" href="/blog/<%= blog._id %>">
+            <div class="story-copy">
+              <h3 class="story-title"><%= blog.title %></h3>
+              <% if (plain) { %>
+              <p class="story-excerpt"><%= plain %></p>
+              <% } %>
+              <p class="story-meta">
+                <span class="story-author"><%= author %></span>
+                <% if (stamp) { %><span><%= stamp %></span><% } %>
+                <span><%= minutes %> min read</span>
+                <% if (topicLabel) { %><span><%= topicLabel %></span><% } %>
+              </p>
+            </div>
+            <% if (blog.coverImageUrl) { %>
+            <div class="story-thumb">
+              <img src="<%= blog.coverImageUrl %>" alt="" loading="lazy">
+            </div>
+            <% } %>
+          </a>
+          <% }) %>
+        </div>
+        <% } else if (!storyCount) { %>
+        <p class="collection-empty">No stories in this collection yet.</p>
+        <% } %>
+      </section>
+      <% }) %>
+    </div>
+    <% } else { %>
+      <div class="collection-prompt">
+        <div class="collection-prompt__body">
+          <h2>Create a collection</h2>
+          <p>Group saved stories under a name you will recognize later.</p>
+          <button type="button" class="collection-prompt__btn" data-open-collection>
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M8 3v10M3 8h10" />
+            </svg>
+            Create collection
+          </button>
+        </div>
+      
+        <svg class="collection-prompt__art" viewBox="0 0 120 100" aria-hidden="true">
+          <rect x="22" y="14" width="64" height="76" rx="10" fill="#fff" fill-opacity=".14"
+                transform="rotate(-12 54 52)" />
+          <rect x="30" y="12" width="64" height="76" rx="10" fill="#fff" fill-opacity=".26"
+                transform="rotate(-3 62 50)" />
+          <g transform="rotate(7 70 52)">
+            <rect x="38" y="14" width="64" height="76" rx="10" fill="#fff" />
+            <path d="M84 14h10v22l-5-4-5 4z" fill="var(--green)" />
+            <rect x="47" y="30" width="26" height="6" rx="3" fill="var(--green)" />
+            <rect x="47" y="44" width="46" height="4" rx="2" fill="var(--green)" fill-opacity=".35" />
+            <rect x="47" y="54" width="40" height="4" rx="2" fill="var(--green)" fill-opacity=".35" />
+            <rect x="47" y="64" width="30" height="4" rx="2" fill="var(--green)" fill-opacity=".35" />
+          </g>
+        </svg>
+      </div>
+    <% } %>
+    <% } else if (locals.blogs && blogs.length) { %>
+    <div class="feed">
+      <%
+        var topicNames = { tech: "Technology", lifestyle: "Lifestyle", travel: "Travel", finance: "Finance" };
+        blogs.forEach(function(blog) {
+          var text = blog.body || "";
+          var plain = text.replace(/\s+/g, " ").trim();
+          var wordCount = plain ? plain.split(" ").length : 0;
+          var minutes = Math.max(1, Math.round(wordCount / 220));
+          var author = blog.createdBy && blog.createdBy.username ? blog.createdBy.username : "Anonymous";
+          var topicLabel = topicNames[blog.category] || blog.category || "";
+          var stamp = blog.createdAt
+            ? new Date(blog.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+            : "";
+      %>
+      <a class="story" href="/blog/<%= blog._id %>">
+        <div class="story-copy">
+          <h2 class="story-title"><%= blog.title %></h2>
+          <% if (plain) { %>
+          <p class="story-excerpt"><%= plain %></p>
+          <% } %>
+          <p class="story-meta">
+            <span class="story-author"><%= author %></span>
+            <% if (stamp) { %><span><%= stamp %></span><% } %>
+            <span><%= minutes %> min read</span>
+            <% if (topicLabel) { %><span><%= topicLabel %></span><% } %>
+          </p>
+        </div>
+        <% if (blog.coverImageUrl) { %>
+        <div class="story-thumb">
+          <img src="<%= blog.coverImageUrl %>" alt="" loading="lazy">
+        </div>
+        <% } %>
+      </a>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="empty">
+      <% if (onPosts) { %>
+      <p class="lede">You haven’t published a story yet.</p>
+      <a class="green-btn" href="/blog/add-new">Write a story</a>
+      <% } else { %>
+      <p class="lede">Nothing saved yet. Save a story and it will show up here.</p>
+      <a class="green-btn" href="/">Read stories</a>
+      <% } %>
+    </div>
+    <% } %>
+    <dialog class="collection-dialog" id="collection-dialog" aria-labelledby="collection-dialog-title">
+      <form method="POST" action="/library/collections" class = "collection-form">
+        <h2 id="collection-dialog-title">New collection</h2>
+        <div class="field">
+          <label for="collection-name">Name</label>
+          <input id="collection-name" name="name" type="text" required maxlength="80" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="collection-description">Description</label>
+          <textarea id="collection-description" name="description" rows="4" required maxlength="280"></textarea>
+        </div>
+        <div class="collection-dialog-actions">
+          <button type="button" class="text-btn" data-close-collection>Cancel</button>
+          <button type="submit" class="green-btn">Create collection</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+
+  <%- include("./partials/script") %>
+</body>
+</html>
