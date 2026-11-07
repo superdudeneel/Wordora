@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "/images/default.png"
     },
+    bio: {
+        type: String,
+        required: false,
+    },
     role: {
         type: String,
         enum: ["ADMIN", "USER"],

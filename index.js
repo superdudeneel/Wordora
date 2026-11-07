@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const methodOverride = require('method-override');
 const path = require("path");
 const cookieParser = require("cookie-parser");
 
@@ -39,6 +40,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.resolve("./public")))
+app.use(methodOverride('_method'));
 
 // custom middleware for auth check
 app.use(checkAuthentication);

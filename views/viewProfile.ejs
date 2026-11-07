@@ -24,6 +24,7 @@
       });
       var topicNames = { tech: "Technology", lifestyle: "Lifestyle", travel: "Travel", finance: "Finance" };
       var photo = person.profileImageUrl && person.profileImageUrl !== "/images/default.png";
+      var bio = (person.bio || "").trim();
     %>
 
     <header class="profile-head">
@@ -56,6 +57,41 @@
       </div>
     </header>
 
+    <div class="profile-switch" data-profile-tabs>
+      <nav class="library-tabs" role="tablist" aria-label="Profile">
+        <button type="button" role="tab" id="profile-tab-about" aria-controls="profile-about" aria-selected="true" data-tab="about">About</button>
+        <button type="button" role="tab" id="profile-tab-stories" aria-controls="profile-stories" aria-selected="false" tabindex="-1" data-tab="stories">Stories</button>
+      </nav>
+
+      <section class="profile-panel" role="tabpanel" id="profile-about" aria-labelledby="profile-tab-about" data-panel="about">
+        <% if (isOwn) { %>
+          <% if (!bio) { %>
+          <p class="lede">You haven’t added a bio yet.</p>
+          <% } %>
+          <div data-bio-view<% if (!bio) { %> hidden<% } %>>
+            <p class="profile-bio"><%= bio %></p>
+            <div class="profile-actions">
+              <button type="button" class="text-btn" data-edit-bio>Edit bio</button>
+            </div>
+          </div>
+          <form class="add-bio" action="/myprofile/add-bio" method="POST"<% if (bio) { %> hidden<% } %>>
+            <div class="field response-compose">
+              <label for="bio">Bio</label>
+              <textarea id="bio" name="bio" maxlength="200" required placeholder="Write something about yourself"><%= bio %></textarea>
+            </div>
+            <button type="submit" class="green-btn"><%= bio ? "Save bio" : "Add bio" %></button>
+            <% if (bio) { %>
+            <button type="button" class="text-btn" data-cancel-bio>Cancel</button>
+            <% } %>
+          </form>
+        <% } else if (bio) { %>
+        <p class="profile-bio"><%= bio %></p>
+        <% } else { %>
+        <p class="lede">No bio yet.</p>
+        <% } %>
+      </section>
+
+      <section class="profile-panel" role="tabpanel" id="profile-stories" aria-labelledby="profile-tab-stories" data-panel="stories" hidden>
     <% if (stories.length) { %>
     <div class="feed">
       <% stories.forEach(function (blog) {
@@ -94,6 +130,62 @@
     <% } else { %>
     <p class="lede">No stories yet.</p>
     <% } %>
+      </section>
+    </div>
+    <script>
+      (function () {
+        var root = document.querySelector("[data-profile-tabs]");
+        if (!root) return;
+        var tabs = Array.prototype.slice.call(root.querySelectorAll("[data-tab]"));
+        var panels = root.querySelectorAll("[data-panel]");
+
+        function show(name) {
+          tabs.forEach(function (tab) {
+            var on = tab.getAttribute("data-tab") === name;
+            tab.setAttribute("aria-selected", on ? "true" : "false");
+            tab.tabIndex = on ? 0 : -1;
+          });
+          panels.forEach(function (panel) {
+            panel.hidden = panel.getAttribute("data-panel") !== name;
+          });
+        }
+
+        var bioView = document.querySelector("[data-bio-view]");
+        var bioForm = document.querySelector(".add-bio");
+        var editBio = document.querySelector("[data-edit-bio]");
+        var cancelBio = document.querySelector("[data-cancel-bio]");
+        if (editBio && bioView && bioForm) {
+          editBio.addEventListener("click", function () {
+            bioView.hidden = true;
+            bioForm.hidden = false;
+            var field = bioForm.querySelector("textarea");
+            if (field) field.focus();
+          });
+        }
+        if (cancelBio && bioView && bioForm) {
+          cancelBio.addEventListener("click", function () {
+            bioForm.hidden = true;
+            bioView.hidden = false;
+            editBio.focus();
+          });
+        }
+
+        tabs.forEach(function (tab, index) {
+          tab.addEventListener("click", function () {
+            show(tab.getAttribute("data-tab"));
+          });
+          tab.addEventListener("keydown", function (event) {
+            var next = index;
+            if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+            else if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
+            else return;
+            event.preventDefault();
+            tabs[next].focus();
+            show(tabs[next].getAttribute("data-tab"));
+          });
+        });
+      })();
+    </script>
     <% } %>
   </main>
 

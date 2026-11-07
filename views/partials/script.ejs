@@ -1,3 +1,4 @@
+
 <script>
   (function () {
     "use strict";
@@ -53,7 +54,7 @@
         }
       });
     }
-
+    
     /* ---------- Response form (+ scroll restore) ---------- */
     function initResponseForm() {
       var y = sessionStorage.getItem("scrollY");
@@ -442,6 +443,34 @@
       });
     }
 
+    function initAddBio() {
+      var y = sessionStorage.getItem("scrollY");
+      if (y !== null) {
+        window.scrollTo(0, parseInt(y, 10));
+        sessionStorage.removeItem("scrollY");
+      }
+      var addBioForm = document.querySelector(".add-bio");
+      if(!addBioForm) return;
+
+      addBioForm.addEventListener("submit", async function (e){
+        e.preventDefault();
+        try{
+          var res = await fetch(addBioForm.action, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(new FormData(addBioForm)),
+            credentials: "same-origin"
+          });
+          if (res.ok) {
+            sessionStorage.setItem("scrollY", window.scrollY);
+            location.reload();
+          }
+        }catch(err){
+          console.error(err);
+        }
+      })
+    }
+
     /* ---------- Init everything independently ---------- */
     [
       initTheme,
@@ -454,6 +483,7 @@
       initCopyLink,
       initProfileFollow,
       initToggleCollection,
+      initAddBio
     ].forEach(function (fn) {
       try { fn(); } catch (err) { console.error(fn.name + " failed:", err); }
     });

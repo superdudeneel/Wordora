@@ -16,7 +16,8 @@ async function checkAuthentication(req, res, next){
         return next();
     }
 
-    req.user = user;
+    req.user = dbUser;
+    res.locals.user = dbUser; 
 
     return next();
 }

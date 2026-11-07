@@ -159,4 +159,27 @@ async function handleCreateCollection(req, res){
     }
 }
 
-module.exports = {handleLogIn, handleUserSignUp, handleGetLibraryPosts, handleGetLibrarySaved, handleGetMyProfile, handleGetLibraryCollections, handleCreateCollection};
+async function handleAddBio(req, res){
+    if(!req.user){
+        return res.redirect("/login");
+    }
+
+    const {bio} = req.body;
+    try{
+        const dbUser = await userModel.findById(req.user?._id);
+        dbUser.bio = bio;
+        await dbUser.save();
+        req.user.bio = bio;
+        return res.json({
+            msg: "Success"
+        })
+    }catch(err){
+        console.error(err);
+        return res.json({
+            msg: "Some error occured"
+        })
+    }
+}
+
+module.exports = {handleLogIn, handleUserSignUp, handleGetLibraryPosts, handleGetLibrarySaved, handleGetMyProfile, handleGetLibraryCollections, 
+    handleCreateCollection, handleAddBio};

@@ -2,7 +2,7 @@ const express = require("express");
 
 const {handleLogIn, handleUserSignUp, 
     handleGetLibraryPosts, handleGetLibrarySaved, handleGetMyProfile, handleGetLibraryCollections
-, handleCreateCollection} = require("../controllers/user");
+, handleCreateCollection, handleAddBio} = require("../controllers/user");
  
 // models    
 const blogModel = require("../models/blog");
@@ -30,5 +30,6 @@ router.get("/library/myposts", handleGetLibraryPosts);
 router.get("/library/collections", handleGetLibraryCollections);
 router.post("/library/collections", handleCreateCollection);
 router.get("/myprofile", handleGetMyProfile);
+router.post("/myprofile/add-bio", handleAddBio);
 
 module.exports = router;

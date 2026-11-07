@@ -27,7 +27,7 @@
   --line: #2c2c2c;
   --line-strong: #3a3a3a;
   --green: #1a8917;
-  --green-hover: #2ea82b;
+  --green-hover: #146c12;
   --wash: #242424;
   --nav: #141414;
   --danger-bg: #3a2222;
@@ -168,6 +168,48 @@ a {
   padding: 5.15rem 0.85rem 1.5rem;
   background: var(--paper);
   border-right: 1px solid var(--line)
+}
+
+.add-bio {
+  margin-top: 0.75rem;
+}
+
+.btn-add-bio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  background: #2563eb;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.btn-add-bio::before {
+  content: "+";
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.btn-add-bio:hover {
+  background: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.btn-add-bio:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.btn-add-bio:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
 
 .rail-link,
@@ -547,16 +589,22 @@ a {
   display: none;
 }
 
-.library-tabs a {
+.library-tabs a,
+.library-tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
   color: var(--muted);
+  cursor: pointer;
+  font: inherit;
   text-decoration: none;
   padding: 0.55rem 0 0.7rem;
   margin-bottom: -1px;
-  border-bottom: 2px solid transparent;
   white-space: nowrap;
 }
 
-.library-tabs a[aria-current="page"] {
+.library-tabs a[aria-current="page"],
+.library-tabs button[aria-selected="true"] {
   color: var(--ink);
   border-bottom-color: var(--ink);
   font-weight: 600;
@@ -1305,9 +1353,8 @@ a.response-name:hover {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 0 0 0.4rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--line);
+  margin: 0;
+  padding-bottom: 0.35rem;
 }
 
 .avatar.profile-avatar {
@@ -1391,6 +1438,27 @@ a.response-name:hover {
   margin: 0;
   color: var(--danger-ink);
   font-size: 0.92rem;
+}
+
+.profile-switch {
+  margin-top: 0.85rem;
+}
+
+.profile-panel {
+  padding-top: 1.15rem;
+}
+
+.profile-panel[hidden] {
+  display: none;
+}
+
+.profile-bio {
+  margin: 0;
+  max-width: 38rem;
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
 }
 
 body.has-dock {
