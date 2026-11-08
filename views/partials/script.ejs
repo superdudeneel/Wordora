@@ -508,6 +508,43 @@
       });
     }
 
+    function initAddProfilePhoto() {
+      const uploadForm = document.querySelector(".avatar-upload");
+      if (!uploadForm) return;
+  
+      const avatarInput = document.querySelector("[data-avatar-input]");
+      const profileImg = document.querySelector(".dp-photo");
+  
+      avatarInput.addEventListener("change", async () => {
+          if (avatarInput.files.length > 0) {
+            try {
+              const response = await fetch(uploadForm.action, {
+                  method: "POST",
+                  credentials: "same-origin",
+                  body: new FormData(uploadForm)
+              });
+  
+              if (!response.ok) {
+                  throw new Error("Upload failed");
+              }
+  
+              const data = await response.json();
+
+              console.log("Backend response:", data);
+              console.log("Profile URL:", data.profileUrl);
+  
+              if (profileImg) {
+                  profileImg.src = data.profileUrl;
+                  location.reload();
+              }
+  
+          } catch (err) {
+              console.error(err);
+          }
+          }
+      });
+  }
+
     function initAddBio() {
       var y = sessionStorage.getItem("scrollY");
       if (y !== null) {
@@ -549,7 +586,8 @@
       initCopyLink,
       initProfileFollow,
       initToggleCollection,
-      initAddBio
+      initAddBio,
+      initAddProfilePhoto
     ].forEach(function (fn) {
       try { fn(); } catch (err) { console.error(fn.name + " failed:", err); }
     });

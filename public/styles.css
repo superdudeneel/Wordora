@@ -1316,6 +1316,81 @@ a {
   flex: none;
 }
 
+.avatar-upload {
+  position: relative;
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.avatar-upload-label {
+  position: relative;
+  cursor: pointer;
+}
+
+.avatar-upload-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.avatar-upload-overlay small {
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.avatar-upload-label:hover .avatar-upload-overlay,
+.avatar-upload:focus-within .avatar-upload-overlay {
+  opacity: 1;
+}
+
+.avatar-upload:focus-within .avatar-upload-label {
+  outline: 2px solid #16a34a;
+  outline-offset: 3px;
+}
+
+/* touch devices have no hover, so keep the hint visible */
+@media (hover: none) {
+  .avatar-upload-overlay { opacity: 1; background: rgba(0, 0, 0, 0.45); }
+}
+
+.avatar-upload.is-uploading .avatar-upload-label {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.avatar-btn {
+  overflow: hidden;
+  padding: 0;
+}
+
+.avatar-btn .dp-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.avatar-upload-note {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  margin: 0;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: #dc2626;
+}
+
 .response > .avatar img {
   width: 100%;
   height: 100%;

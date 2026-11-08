@@ -181,5 +181,29 @@ async function handleAddBio(req, res){
     }
 }
 
+async function handleUploadProfilePic(req, res){
+    if(!req.user){
+        return res.redirect("/login");
+    }
+
+    const file = req.file;
+
+    try{
+        const dbUser = await userModel.findById(req.user?._id);
+        dbUser.profileImageUrl = req.file ? `/profile/${req.file.filename}` : undefined
+        await dbUser.save();
+
+        return res.json({
+            success: true,
+            profileUrl: `/profile/${req.file.filename}`
+        })
+    }catch(err){
+        console.error(err);
+        return res.json({
+            msg: "Some error occured"
+        })
+    }
+}
+
 module.exports = {handleLogIn, handleUserSignUp, handleGetLibraryPosts, handleGetLibrarySaved, handleGetMyProfile, handleGetLibraryCollections, 
-    handleCreateCollection, handleAddBio};
+    handleCreateCollection, handleAddBio, handleUploadProfilePic};
