@@ -72,13 +72,32 @@
     %>
 
     <header class="profile-head">
-      <span class="avatar profile-avatar" aria-hidden="true">
-        <% if (photo) { %>
-        <img src="<%= person.profileImageUrl %>" alt="">
+      <% if (isOwn && !photo) { %>
+        <form class="avatar-upload" action="/myprofile/add-dp" method="POST" enctype="multipart/form-data" data-avatar-upload>
+          <label class="avatar profile-avatar avatar-upload-label" for="profilePhoto">
+            <span aria-hidden="true"><%= name.charAt(0).toUpperCase() %></span>
+            <span class="avatar-upload-overlay" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.2-2h6.6l1.2 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/>
+                <circle cx="12" cy="13" r="3.2"/>
+              </svg>
+              <small>Add photo</small>
+            </span>
+            <span class="visually-hidden">Upload a profile photo</span>
+          </label>
+          <input class="visually-hidden" type="file" id="profilePhoto" name="profileImage"
+                 accept="image/png,image/jpeg,image/webp" data-avatar-input>
+          <p class="avatar-upload-note" data-avatar-note role="alert" hidden></p>
+        </form>
         <% } else { %>
-        <%= name.charAt(0).toUpperCase() %>
+        <span class="avatar profile-avatar" aria-hidden="true">
+          <% if (photo) { %>
+          <img src="<%= person.profileImageUrl %>" alt="" class = "dp-photo">
+          <% } else { %>
+          <%= name.charAt(0).toUpperCase() %>
+          <% } %>
+        </span>
         <% } %>
-      </span>
       <div class="profile-identity">
         <h1 class="profile-name"><%= name %></h1>
         <p class="profile-meta">

@@ -23,14 +23,30 @@
       
         <div class="account" data-account>
           <button type="button" class="avatar avatar-btn" data-account-toggle
-                  aria-haspopup="true" aria-expanded="false" aria-controls="account-menu"
-                  aria-label="Account menu">
-            <%= (locals.user.username || "?").charAt(0).toUpperCase() %>
-          </button>
+        aria-haspopup="true" aria-expanded="false" aria-controls="account-menu"
+        aria-label="Account menu">
+
+    <% if (locals.user.profileImageUrl) { %>
+        <img src="<%= locals.user.profileImageUrl %>" 
+             alt="Profile"
+             class="dp-photo">
+    <% } else { %>
+        <%= (locals.user.username || "?").charAt(0).toUpperCase() %>
+    <% } %>
+
+</button>
       
           <div class="account-menu" id="account-menu" data-account-menu hidden>
             <div class="account-head">
-              <span class="avatar" aria-hidden="true"><%= (locals.user.username || "?").charAt(0).toUpperCase() %></span>
+              <span class="avatar" aria-hidden="true">
+                <% if (locals.user.profileImageUrl) { %>
+                  <img src="<%= locals.user.profileImageUrl %>" 
+                       alt="Profile"
+                       class="dp-photo">
+                <% } else { %>
+                  <%= (locals.user.username || "?").charAt(0).toUpperCase() %>
+                <% } %>
+              </span>
               <div class="account-id">
                 <p class="account-name">
                   <%= locals.user.username %>
