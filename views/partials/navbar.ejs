@@ -26,7 +26,7 @@
         aria-haspopup="true" aria-expanded="false" aria-controls="account-menu"
         aria-label="Account menu">
 
-    <% if (locals.user.profileImageUrl) { %>
+    <% if (locals.user.profileImageUrl && locals.user.profileImageUrl != "/images/default.png") { %>
         <img src="<%= locals.user.profileImageUrl %>" 
              alt="Profile"
              class="dp-photo">
@@ -39,7 +39,7 @@
           <div class="account-menu" id="account-menu" data-account-menu hidden>
             <div class="account-head">
               <span class="avatar" aria-hidden="true">
-                <% if (locals.user.profileImageUrl) { %>
+                <% if (locals.user.profileImageUrl && locals.user.profileImageUrl != "/images/default.png") { %>
                   <img src="<%= locals.user.profileImageUrl %>" 
                        alt="Profile"
                        class="dp-photo">
