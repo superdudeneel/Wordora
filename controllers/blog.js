@@ -46,7 +46,7 @@ async function handleGetBlogById(req, res){
     let liked = "false";
     
     if(req.user){
-        const userLiked = await likeModel.find({
+        const userLiked = await likeModel.findOne({
             blogId: id,
             createdBy: req.user._id
         })
@@ -132,32 +132,33 @@ async function handleCommentOnBlog(req, res) {
     }
 }
 
-async function handleLikePost(req, res){
-    const blogId = req.params.id;
-    const user = req.user;
-
-    const dbLike = await likeModel.findOne({
-        blogId: blogId,
-        createdBy: user._id
-    })
-
-    try{
-        if(dbLike){
-            await likeModel.deleteOne({ _id: dbLike._id });
-            return res.redirect(`/blog/${blogId}`);
-        }
-
-        await likeModel.create({
-            blogId: blogId,
-            createdBy: user._id
-        })
-        return res.redirect(`/blog/${blogId}`);
-    }catch(err){
-        console.log(err);
-        return res.json({
-            msg: err
-        })
+async function handleLikePost(req, res) {
+    if (!req.user) {
+      return res.redirect("/login");
     }
-}
+  
+    const blogId = req.params.id;
+    const userId = req.user._id;
+  
+    try {
+      const existing = await likeModel.findOne({ blogId, createdBy: userId });
+  
+      let liked;
+      if (existing) {
+        await likeModel.deleteOne({ _id: existing._id });
+        liked = false;
+      } else {
+        await likeModel.create({ blogId, createdBy: userId });
+        liked = true;
+      }
+  
+      const count = await likeModel.countDocuments({ blogId });
+  
+      return res.json({ liked, count });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ msg: "Couldn't update like" });
+    }
+  }
 
 module.exports = {handleCreateBlog, handleGetBlogById, handleSaveBlog, handleCommentOnBlog, handleLikePost};

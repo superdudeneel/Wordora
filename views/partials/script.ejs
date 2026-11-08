@@ -55,6 +55,71 @@
       });
     }
     
+    /* ---------- Like button ---------- */
+    function initLike() {
+      const likeForm = document.querySelector(".like-form");
+      if(!likeForm) return;
+
+      var likeBtn = likeForm.querySelector("[data-like]");
+      if (!likeBtn) return;
+      var likePath = likeBtn.querySelector("path");
+      var likeCount = likeBtn.querySelector("[data-like-count]");
+      var liking = false;
+
+      function setLiked(on) {
+        likeBtn.classList.toggle("is-liked", on);
+        likeBtn.setAttribute("aria-pressed", on ? "true" : "false");
+        likeBtn.setAttribute("aria-label", on ? "Unlike" : "Like");
+        if (likePath) likePath.setAttribute("fill", on ? "currentColor" : "none");
+      }
+
+      function setCount(n) {
+        if (likeCount) likeCount.textContent = Math.max(0, n);
+      }
+    
+
+      likeForm.addEventListener("submit", async function(e){
+        e.preventDefault();
+        if (liking) return;
+        liking = true;
+
+        var wasLiked = likeBtn.getAttribute("aria-pressed") === "true";
+        var oldCount = likeCount ? parseInt(likeCount.textContent, 10) || 0 : 0;
+
+    // optimistic update
+        setLiked(!wasLiked);
+        setCount(oldCount + (wasLiked ? -1 : 1));
+
+        try {
+          var res = await fetch(likeForm.action, {
+            method: "POST",
+            credentials: "same-origin"
+          });
+    
+          // not logged in, or the server errored: roll back
+          if (!res.ok || res.url.indexOf("/login") !== -1) {
+            setLiked(wasLiked);
+            setCount(oldCount);
+            console.error("Like failed:", res.status);
+            return;
+          }
+    
+          // if the server returns JSON like { liked, count }, trust it
+          try {
+            var data = await res.json();
+            if (typeof data.liked === "boolean") setLiked(data.liked);
+            if (typeof data.count === "number") setCount(data.count);
+          } catch (e) { /* not JSON, keep the optimistic values */ }
+        } catch (err) {
+          setLiked(wasLiked);
+          setCount(oldCount);
+          console.error(err);
+        } finally {
+          liking = false;
+        }
+      })
+    }
+
     /* ---------- Response form (+ scroll restore) ---------- */
     function initResponseForm() {
       var y = sessionStorage.getItem("scrollY");
@@ -476,6 +541,7 @@
       initTheme,
       initAccountMenu,
       initSave,
+      initLike,
       initResponseForm,
       initFilter,
       initReveal,
