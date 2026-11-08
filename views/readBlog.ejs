@@ -166,16 +166,19 @@
     %>
     <div class="story-actions">
       <div class="story-actions-main">
-        <form class="like-form" action="/blog/like/<%= blog._id %>" method="POST" data-like-form>
-          <button type="submit" class="action-icon" data-like
-                  aria-pressed="<%= isLiked ? 'true' : 'false' %>">
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-              <path d="M12 19.2S5.8 15.3 5.8 11.1A3.4 3.4 0 0 1 12 8.2a3.4 3.4 0 0 1 6.2 2.9c0 4.2-6.2 8.1-6.2 8.1z"
-                    fill="<%= isLiked ? 'currentColor' : 'none' %>"
-                    stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
-            </svg>
-            <span data-like-count><%= likeCount %></span>
-          </button>
+        <form class="like-form" action="/blog/like/<%= blog._id %>" method = "POST" data-like-form>
+          <button type="submit"
+          class="like-btn action-icon<%= isLiked ? ' is-liked' : '' %>"
+          data-like
+          aria-pressed="<%= isLiked ? 'true' : 'false' %>"
+          aria-label="<%= isLiked ? 'Unlike' : 'Like' %>">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path d="M12 19.2S5.8 15.3 5.8 11.1A3.4 3.4 0 0 1 12 8.2a3.4 3.4 0 0 1 6.2 2.9c0 4.2-6.2 8.1-6.2 8.1z"
+            fill="<%= isLiked ? 'currentColor' : 'none' %>"
+            stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
+    </svg>
+    <span data-like-count><%= likeCount %></span>
+  </button>
         </form>
         <a class="action-icon" href="#responses">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -263,20 +266,5 @@
   </main>
 
   <%- include("./partials/script") %>
-  <script>
-    (function () {
-      var like = document.querySelector("[data-like]");
-      if (!like) return;
-      like.addEventListener("click", function () {
-        var on = like.getAttribute("aria-pressed") === "true";
-        like.setAttribute("aria-pressed", on ? "false" : "true");
-        var count = like.querySelector("[data-like-count]");
-        if (!count) return;
-        var value = parseInt(count.textContent, 10);
-        if (isNaN(value)) return;
-        count.textContent = String(on ? Math.max(0, value - 1) : value + 1);
-      });
-    })();
-  </script>
 </body>
 </html>
