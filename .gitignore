@@ -69,3 +69,6 @@ temp/
 
 # Cursor (local settings)
 .cursor/
+
+public/data/
+public/profile/
