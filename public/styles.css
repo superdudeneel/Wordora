@@ -17,9 +17,6 @@
   --serif: "Helvetica Neue", Helvetica, Arial, sans-serif;;
   --sans: "Source Sans 3", "Segoe UI", sans-serif;
   color-scheme: light;
-  --nav-h: 60px;      /* height of your top navbar */
-  --side-w: 260px;    /* width of your left sidebar */
-  --banner-h: 64px;
 }
 
 [data-theme="dark"] {
@@ -1352,8 +1349,6 @@ a.response-name:hover {
   white-space: pre-wrap;
 }
 
-
-
 .read-banner {
   display: flex;
   align-items: center;
@@ -1365,7 +1360,8 @@ a.response-name:hover {
   margin-bottom: 2rem;
   border-radius: 14px;
   color: #fff;
-  background: var(--green-hover);
+  background: linear-gradient(100deg, #1a8917 0%, #22a31d 55%, #146c12 100%);
+  box-shadow: 0 6px 20px rgba(26, 137, 23, 0.25);
 }
 
 .read-banner-main {
