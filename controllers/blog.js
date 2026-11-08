@@ -2,6 +2,7 @@ const blogModel = require("../models/blog");
 const userModel = require("../models/user");
 const commentModel = require("../models/comment");
 const likeModel = require("../models/like");
+const collectionModel = require("../models/collection");
 
 async function handleCreateBlog(req, res){
     const {title, category, body} = req.body;
@@ -35,6 +36,9 @@ async function handleGetBlogById(req, res){
     const blog = await blogModel.findById(id).populate("createdBy");
     const comments = await commentModel.find({blogId: id}).populate("createdBy");
     const likes = await likeModel.find({blogId: id}).populate("createdBy");
+    const collections = await collectionModel.find({
+        createdBy: req.user?._id
+    }).populate("createdBy");
 
     if (!blog) {
         return res.json({
@@ -70,7 +74,8 @@ async function handleGetBlogById(req, res){
         saved: saved,
         comments: comments,
         likes: likes,
-        liked: liked
+        liked: liked,
+        collections: collections
     });
 }
 
@@ -159,6 +164,6 @@ async function handleLikePost(req, res) {
       console.error(err);
       return res.status(500).json({ msg: "Couldn't update like" });
     }
-  }
+}
 
 module.exports = {handleCreateBlog, handleGetBlogById, handleSaveBlog, handleCommentOnBlog, handleLikePost};

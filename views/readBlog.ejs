@@ -188,7 +188,11 @@
           <span class="visually-hidden"><%= comments.length === 1 ? "response" : "responses" %></span>
         </a>
       </div>
-      <form class="save-form" action="/blog/save/<%= blog._id %>" method="POST">
+      <div class="story-actions-keep">
+        <% if (locals.user) { %>
+        <button type="button" class="add-collection" data-open-add-collection>Add to collection</button>
+        <% } %>
+        <form class="save-form" action="/blog/save/<%= blog._id %>" method="POST">
         <button type="submit" class="save-btn action-icon<%= locals.saved === "true" ? " is-saved" : "" %>" aria-pressed="<%= locals.saved === "true" ? "true" : "false" %>" aria-label="<%= locals.saved === "true" ? "Saved" : "Save" %>">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             <path d="M6.5 3.5h11a1 1 0 0 1 1 1V21l-6.5-3.8L5.5 21V4.5a1 1 0 0 1 1-1z"
@@ -200,6 +204,7 @@
           </svg>
         </button>
       </form>
+      </div>
     </div>
 
     <section class="responses" id="responses" aria-labelledby="responses-heading">
@@ -263,6 +268,62 @@
     </div>
     <% } %>
     </div>
+    <% if (locals.user) { %>
+    <% var collections = Array.isArray(locals.collections) ? locals.collections : []; %>
+    <dialog class="collection-dialog collection-picker" id="add-collection-dialog" aria-labelledby="add-collection-title">
+      <div class="collection-picker-body">
+        <h2 id="add-collection-title">Add to a collection</h2>
+        <% if (!collections.length) { %>
+        <p class="lede">You don’t have a collection yet.</p>
+        <a class="green-btn" href="/library/collections">Create a collection</a>
+        <% } else { %>
+        <ul class="picker-list">
+          <% collections.forEach(function (collection) {
+            var savedIds = Array.isArray(collection.savedBlogs) ? collection.savedBlogs : [];
+            var inCollection = savedIds.includes(blog._id);
+          %>
+          <li class="picker-row" data-in-collection="<%= inCollection %>">
+            <div class="picker-copy">
+              <p class="picker-name"><%= collection.name || "Untitled collection" %></p>
+              <% if (collection.description) { %>
+              <p class="picker-desc"><%= collection.description %></p>
+              <% } %>
+            </div>
+          
+            <form method="POST" class="picker-form" action="/library/collections/<%= collection._id %>">
+              <input type="hidden" name="blogId" value="<%= blog._id %>">
+              <button type="submit" class="picker-add"><%= inCollection ? "Remove" : "Add" %></button>
+            </form>
+          </li>
+          <% }) %>
+        </ul>
+        <% } %>
+        <div class="collection-dialog-actions">
+          <button type="button" class="text-btn" data-close-add-collection>Close</button>
+        </div>
+      </div>
+    </dialog>
+    <script>
+      (function () {
+        var dialog = document.getElementById("add-collection-dialog");
+        var open = document.querySelector("[data-open-add-collection]");
+        if (!dialog || !open) return;
+        var close = dialog.querySelector("[data-close-add-collection]");
+
+        open.addEventListener("click", function () {
+          dialog.showModal();
+          var first = dialog.querySelector(".picker-add:not(:disabled)") || close;
+          if (first) first.focus();
+        });
+
+        if (close) close.addEventListener("click", function () { dialog.close(); });
+
+        dialog.addEventListener("click", function (event) {
+          if (event.target === dialog) dialog.close();
+        });
+      })();
+    </script>
+    <% } %>
   </main>
 
   <%- include("./partials/script") %>

@@ -124,7 +124,7 @@ async function handleGetLibraryCollections(req, res){
 
     const allCollections = await collectionModel.find({
         createdBy: req.user?._id
-    });
+    }).populate("createdBy");
 
     return res.render("library", {
         user: req.user,
@@ -205,5 +205,36 @@ async function handleUploadProfilePic(req, res){
     }
 }
 
+async function handleAddToCollection(req, res){
+    const collectionId = req.params.id;
+    const {blogId} = req.body
+    if(!req.user) return res.redirect("/login");
+
+    try{
+        const collection = await collectionModel.findById(collectionId);
+        const exists = collection.savedBlogs.includes(blogId);
+        if(!exists){
+            collection.savedBlogs.push(blogId);
+            await collection.save();
+        }else{
+            const index = collection.savedBlogs.indexOf(blogId);
+            if (index !== -1) {
+                collection.savedBlogs.splice(index, 1);
+            }
+            await collection.save();
+        }
+        
+        return res.json({
+            success: true,
+            inCollection: !exists 
+        });
+    }catch(err){
+        console.error(err);
+        return res.json({
+            msg: 'Some error occured'
+        })
+    }
+}
+
 module.exports = {handleLogIn, handleUserSignUp, handleGetLibraryPosts, handleGetLibrarySaved, handleGetMyProfile, handleGetLibraryCollections, 
-    handleCreateCollection, handleAddBio, handleUploadProfilePic};
+    handleCreateCollection, handleAddBio, handleUploadProfilePic, handleAddToCollection};

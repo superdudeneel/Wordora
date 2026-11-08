@@ -4,7 +4,7 @@ const path = require("path");
 
 const {handleLogIn, handleUserSignUp, 
     handleGetLibraryPosts, handleGetLibrarySaved, handleGetMyProfile, handleGetLibraryCollections
-, handleCreateCollection, handleAddBio, handleUploadProfilePic} = require("../controllers/user");
+, handleCreateCollection, handleAddBio, handleUploadProfilePic, handleAddToCollection} = require("../controllers/user");
  
 // models    
 const blogModel = require("../models/blog");
@@ -43,6 +43,7 @@ router.get("/library/saved", handleGetLibrarySaved);
 router.get("/library/myposts", handleGetLibraryPosts);
 router.get("/library/collections", handleGetLibraryCollections);
 router.post("/library/collections", handleCreateCollection);
+router.post("/library/collections/:id", handleAddToCollection);
 router.get("/myprofile", handleGetMyProfile);
 router.post("/myprofile/add-bio", handleAddBio);
 router.post("/myprofile/add-dp", upload.single("profileImage"), handleUploadProfilePic);

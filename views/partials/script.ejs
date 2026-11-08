@@ -573,6 +573,41 @@
       })
     }
 
+    function initCollectionPicker() {
+      document.querySelectorAll(".picker-form").forEach(function (form) {
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+    
+          var row = form.closest(".picker-row");
+          var btn = form.querySelector(".picker-add");
+          var wasIn = row.dataset.inCollection === "true";
+    
+          btn.disabled = true;
+          btn.textContent = wasIn ? "Removing..." : "Adding...";
+    
+          try {
+            var res = await fetch(form.action, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams(new FormData(form))
+            });
+    
+            if (res.status === 401) { window.location.href = "/login"; return; }
+    
+            var data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.msg || "Request failed");
+    
+            row.dataset.inCollection = String(data.inCollection);
+            btn.textContent = data.inCollection ? "Remove" : "Add";
+          } catch (err) {
+            btn.textContent = wasIn ? "Remove" : "Add";
+            alert("Could not update the collection. Try again.");
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+    }
     /* ---------- Init everything independently ---------- */
     [
       initTheme,
@@ -587,7 +622,8 @@
       initProfileFollow,
       initToggleCollection,
       initAddBio,
-      initAddProfilePhoto
+      initAddProfilePhoto,
+      initCollectionPicker
     ].forEach(function (fn) {
       try { fn(); } catch (err) { console.error(fn.name + " failed:", err); }
     });
